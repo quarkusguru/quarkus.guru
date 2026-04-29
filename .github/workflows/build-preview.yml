@@ -49,10 +49,10 @@ jobs:
         run: |
           echo "pr_number=${{ github.event.number }}" >> $GITHUB_OUTPUT
 
-    - name: Publish blog to Surge.sh
-      run: |
-        # Deploy to the latest URL for this PR
-        npx surge ./target/roq --domain https://quarkusguru-${{ steps.pr.outputs.pr_number }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
+      - name: Publish blog to Surge.sh
+        run: |
+          # Deploy to the latest URL for this PR
+          npx surge ./target/roq --domain https://quarkusguru-${{ steps.pr.outputs.pr_number }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
 
       - name: Comment preview URL on PR
         uses: quarkusio/action-helpers@main
