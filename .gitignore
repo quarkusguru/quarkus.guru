@@ -45,3 +45,5 @@ nb-configuration.xml
 .certs/
 
 node_modules/
+
+.bob/

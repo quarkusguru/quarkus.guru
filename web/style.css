@@ -204,3 +204,7 @@
         overflow: hidden;
     }
 }
+
+pre {
+    padding: 0;
+}
