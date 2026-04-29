@@ -1,24 +1,32 @@
-name: Surge.sh Teardown
+name: Preview Teardown
 
 on:
   pull_request_target:
     types: [closed]
 
+permissions:
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  preview:
+  preview-teardown:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     steps:
-      - name: Teardown Surge.sh preview (blog)
-        id: teardown-blog
-        run: npx surge teardown https://quarkus-guru-${{ github.event.number }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }} || true
+    - name: Install Surge
+      run: npm install surge
+
+    - name: Teardown surge preview
+      id: deploy
+      run: npx surge teardown https://quarkusguru-${{ github.event.number }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
       - name: Update PR status comment
-        uses: quarkusio/action-helpers@main
+        uses: actions-cool/maintain-one-comment@v3.2.0
         with:
-          action: maintain-one-comment
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          pr-number: ${{ github.event.number }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             🙈 The PR is closed and the preview is expired.
-          body-marker: <!-- Preview status comment marker -->
+            <!-- Sticky Pull Request Comment -->
+          body-include: '<!-- Sticky Pull Request Comment -->'
+          number: ${{ github.event.number }}
