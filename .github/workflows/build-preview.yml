@@ -48,12 +48,9 @@ jobs:
         id: pr
         run: |
           echo "pr_number=${{ github.event.number }}" >> $GITHUB_OUTPUT
-          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
     - name: Publish blog to Surge.sh
       run: |
-        # Deploy to a unique URL for this commit
-        npx surge ./target/roq --domain https://quarkusguru-${{ steps.pr.outputs.pr_number }}-${{ steps.pr.outputs.sha_short }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
         # Deploy to the latest URL for this PR
         npx surge ./target/roq --domain https://quarkusguru-${{ steps.pr.outputs.pr_number }}-preview.surge.sh --token ${{ secrets.SURGE_TOKEN }}
 
@@ -69,7 +66,6 @@ jobs:
             | Type | URL |
             | :--- | :--- |
             | 🔄 **Latest** | https://quarkusguru-${{ steps.pr.outputs.pr_number }}-preview.surge.sh |
-            | 📌 **Commit (${{ steps.pr.outputs.sha_short }})** | https://quarkusguru-${{ steps.pr.outputs.pr_number }}-${{ steps.pr.outputs.sha_short }}-preview.surge.sh |
 
             _Built from ${{ github.event.pull_request.head.sha }}_
           body-marker: <!-- Preview status comment marker -->
