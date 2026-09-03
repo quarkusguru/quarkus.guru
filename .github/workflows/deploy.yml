@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy-s3:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,39 +32,6 @@ jobs:
         env:
           SITE_URL: https://quarkus.guru
 
-      - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: target/roq
-
-      - name: Upload site for the S3 job
-        uses: actions/upload-artifact@v4
-        with:
-          name: roq-site
-          path: target/roq
-          retention-days: 1
-
-  deploy-pages:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-  deploy-s3:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download the generated site
-        uses: actions/download-artifact@v4
-        with:
-          name: roq-site
-          path: roq-site
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -73,10 +40,29 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy to S3
-        run: aws s3 sync ./roq-site s3://quarkus.guru --delete
+        run: aws s3 sync ./target/roq s3://quarkus.guru --delete
 
       - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation \
             --distribution-id E2VUI55Q667KPT \
             --paths "/*"
+
+  # GitHub Pages (https://quarkusguru.github.io) only serves a redirect to
+  # https://quarkus.guru; the actual site lives on S3 + CloudFront.
+  deploy-pages:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload redirect as the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pages
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
