@@ -74,3 +74,9 @@ jobs:
 
       - name: Deploy to S3
         run: aws s3 sync ./roq-site s3://quarkus.guru --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E2VUI55Q667KPT \
+            --paths "/*"
